@@ -1,0 +1,1 @@
+cmd_/srv/shared/honghu_driver/feihong.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -z noexecstack   --build-id  -T ./scripts/module-common.lds -o /srv/shared/honghu_driver/feihong.ko /srv/shared/honghu_driver/feihong.o /srv/shared/honghu_driver/feihong.mod.o;  true
