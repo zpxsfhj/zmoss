@@ -1,0 +1,12 @@
+/*/*
+!/*/*.srcs/
+!/*/*.xpr
+!/*/*.runs/
+/*/*.runs/*
+!/*/*.runs/impl_1
+/*/*.runs/impl_1/*
+!/*/*.runs/impl_1/*.bit
+!/*/*.runs/impl_1/*.ltx
+*~
+*swo
+*swp
