@@ -93,6 +93,42 @@ module rx_rounter_tb ();
     wire [7:0]  rx_bar_hit          ;
     wire        rx_err_fwd          ;
     wire        rx_err_ecrc         ;
+
+    wire                      rx_out_valid     ;
+    wire                      rx_out_sof       ;
+    wire                      rx_out_eof       ;
+    wire	[3:0]             rx_out_eof_index ;
+    wire	[DATA_WIDTH -1:0] rx_out_data	   ;
+
+    wire                  wrReq_valid    ;
+    wire [DATA_WIDTH-1:0] wrReq_data     ;
+    wire                  wrReq_eof      ;
+    wire [3:0]            wrReq_lastBe   ;
+    wire [3:0]            wrReq_firstBe  ;
+    wire                  wrReq_fmt      ;
+    wire                  wrReq_type     ;
+    wire [15:0]           wrReq_reqid    ;
+    wire [63:0]           wrReq_address  ;
+    wire [7:0]            wrReq_tag      ;
+    wire [9:0]            wrReq_dwlen    ;
+    wire [2:0]            wrReq_tc       ;
+    wire [2:0]            wrReq_attr     ;
+    wire [1:0]            wrReq_at       ;
+
+    wire                   rdReq_valid   ;
+    wire [DATA_WIDTH-1:0]  rdReq_data    ;
+    wire                   rdReq_eof     ;
+    wire [3:0]             rdReq_lastBe  ;
+    wire [3:0]             rdReq_firstBe ;
+    wire                   rdReq_fmt     ;
+    wire                   rdReq_type    ;
+    wire [15:0]            rdReq_reqid   ;
+    wire [63:0]            rdReq_address ;
+    wire [7:0]             rdReq_tag     ;
+    wire [9:0]             rdReq_dwlen   ;
+    wire [2:0]             rdReq_tc      ;
+    wire [2:0]             rdReq_attr    ;
+    wire [1:0]             rdReq_at      ;
     
 //*******************INSTANCE AREA***************************************************/
     rx_pkt_router #(
@@ -151,7 +187,7 @@ module rx_rounter_tb ();
         .rx_bar5_eof        (rx_bar5_eof        ) , //output reg                      
         .rx_bar5_eof_index  (rx_bar5_eof_index  ) , //output reg [3:0]                
         .rx_bar5_data       (rx_bar5_data       )   //output reg [DATA_WIDTH-1 : 0]   
-);
+    );
     rx_pkt_realign #(
         .DATA_WIDTH (DATA_WIDTH)
     )
@@ -166,13 +202,122 @@ module rx_rounter_tb ();
         .i_rx_in_eof       (rx_bar0_eof      ), //input   wire                      
         .i_rx_in_eof_index (rx_bar0_eof_index), //input   wire    [3:0]             
 
-        .rx_out_valid     (), //output  wire                      
-        .rx_out_sof       (), //output  reg                       
-        .rx_out_eof       (), //output  reg                       
-        .rx_out_eof_index (), //output  reg 	[3:0]             
-        .rx_out_data	  ()  //output  reg 	[DATA_WIDTH -1:0] 
-    
+        .rx_out_valid     (rx_out_valid    ), //output  wire                  
+        .rx_out_sof       (rx_out_sof      ), //output  reg                   
+        .rx_out_eof       (rx_out_eof      ), //output  reg                   
+        .rx_out_eof_index (rx_out_eof_index), //output  reg 	[3:0]         
+        .rx_out_data	  (rx_out_data	 )  //output  reg 	[DATA_WIDTH -1:0] 
     );
+
+    rx_pkt_unpack #(
+        .DATA_WIDTH (64)
+    )
+    rx_pkt_unpack_inst(
+        .i_clk (pcie_axi_clk) , //input wire 
+        .i_rst (i_rst) , //input wire 
+
+        .rx_in_valid     (rx_out_valid    ) , //input wire                  
+        .rx_in_data      (rx_out_data     ) , //input wire [DATA_WIDTH-1:0] 
+        .rx_in_sof       (rx_out_sof      ) , //input wire                  
+        .rx_in_eof       (rx_out_eof      ) , //input wire                  
+        .rx_in_eof_index (rx_out_eof_index) , //input wire [3:0]            
+
+        .wrReq_valid    (wrReq_valid  ) , //output reg                     
+        .wrReq_data     (wrReq_data   ) , //output reg [DATA_WIDTH-1:0]    
+        .wrReq_eof      (wrReq_eof    ) , //output reg                     
+        .wrReq_lastBe   (wrReq_lastBe ) , //output reg [3:0]               
+        .wrReq_firstBe  (wrReq_firstBe) , //output reg [3:0]               
+        .wrReq_fmt      (wrReq_fmt    ) , //output reg                     
+        .wrReq_type     (wrReq_type   ) , //output reg                     
+        .wrReq_reqid    (wrReq_reqid  ) , //output reg [15:0]              
+        .wrReq_address  (wrReq_address) , //output reg [63:0]              
+        .wrReq_tag      (wrReq_tag    ) , //output reg [7:0]               
+        .wrReq_dwlen    (wrReq_dwlen  ) , //output reg [9:0]               
+        .wrReq_tc       (wrReq_tc     ) , //output reg [2:0]               
+        .wrReq_attr     (wrReq_attr   ) , //output reg [2:0]               
+        .wrReq_at       (wrReq_at     ) , //output reg [1:0]               
+
+        .rdReq_valid    (rdReq_valid  ) , //output reg                   rdReq_valid    
+        .rdReq_data     (rdReq_data   ) , //output reg [DATA_WIDTH-1:0]  rdReq_data     
+        .rdReq_eof      (rdReq_eof    ) , //output reg                   rdReq_eof      
+        .rdReq_lastBe   (rdReq_lastBe ) , //output reg [3:0]             rdReq_lastBe   
+        .rdReq_firstBe  (rdReq_firstBe) , //output reg [3:0]             rdReq_firstBe  
+        .rdReq_fmt      (rdReq_fmt    ) , //output reg                   rdReq_fmt      
+        .rdReq_type     (rdReq_type   ) , //output reg                   rdReq_type     
+        .rdReq_reqid    (rdReq_reqid  ) , //output reg [15:0]            rdReq_reqid    
+        .rdReq_address  (rdReq_address) , //output reg [63:0]            rdReq_address  
+        .rdReq_tag      (rdReq_tag    ) , //output reg [7:0]             rdReq_tag      
+        .rdReq_dwlen    (rdReq_dwlen  ) , //output reg [9:0]             rdReq_dwlen    
+        .rdReq_tc       (rdReq_tc     ) , //output reg [2:0]             rdReq_tc       
+        .rdReq_attr     (rdReq_attr   ) , //output reg [2:0]             rdReq_attr     
+        .rdReq_at       (rdReq_at     )   //output reg [1:0]             rdReq_at       
+    );
+
+    bar_engine #(
+        .DATA_WIDTH     (64) ,
+        .AXIDATA_WIDTH  (32)  
+    )(
+        .i_rx_pkt_clk  () , //input wire 
+        .i_rx_pkt_rst  () , //input wire 
+        .i_tx_pkt_clk  () , //input wire 
+        .i_axi_clk     () , //input wire 
+        .i_axi_rst     () , //input wire 
+
+        .wrReq_valid    (wrReq_valid  ) , //input wire                     
+        .wrReq_data     (wrReq_data   ) , //input wire [DATA_WIDTH-1:0]    
+        .wrReq_dwlen    (wrReq_dwlen  ) , //input wire [9:0]               
+        .wrReq_address  (wrReq_address) , //input wire [31:0]              
+
+        .rdReq_valid    (rdReq_valid  ) , //input wire                      
+        .rdReq_address  (rdReq_address) , //input wire [31:0]               
+        .rdReq_reqid    (rdReq_reqid  ) , //input	wire   	[15:0]          
+        .rdReq_tag      (rdReq_tag    ) , //input	wire  	[7:0]           
+	    .rdReq_dwlen    (rdReq_dwlen  ) , //input	wire  	[9:0]           
+	    .rdReq_TC       (rdReq_TC     ) , //input	wire  	[2:0]           
+	    .rdReq_attr     (rdReq_attr   ) , //input	wire  	[2:0]           
+	    .rdReq_at       (rdReq_at     ) , //input	wire  	[1:0]           
+
+
+        .maxi_lite_awaddr     (maxi_lite_awaddr ) , //output reg  [31:0]  
+        .maxi_lite_awready    (maxi_lite_awready) , //input  wire         
+        .maxi_lite_awvalid    (maxi_lite_awvalid) , //output reg          
+
+        .maxi_lite_wdata   (maxi_lite_wdata ) , //output reg  [AXIDATA_WIDTH -1 :0]   
+        .maxi_lite_wready  (maxi_lite_wready) , //input  wire                         
+        .maxi_lite_wstrb   (maxi_lite_wstrb ) , //output wire [AXIDATA_WIDTH/8 -1:0]  
+        .maxi_lite_wvalid  (maxi_lite_wvalid) , //output reg                          
+
+        .maxi_lite_bready    (maxi_lite_bready) , //output wire               
+        .maxi_lite_bresp     (maxi_lite_bresp ) , //input  wire [1:0]         
+        .maxi_lite_bvalid    (maxi_lite_bvalid) , //input  wire               
+
+        .maxi_lite_araddr    (maxi_lite_araddr ) , //output reg  [31:0]      
+        .maxi_lite_arready   (maxi_lite_arready) , //input  wire             
+        .maxi_lite_arvalid   (maxi_lite_arvalid) , //output reg              
+
+        .maxi_lite_rdata     (maxi_lite_rdata ) , //input  wire [AXIDATA_WIDTH -1 :0]   
+        .maxi_lite_rready    (maxi_lite_rready) , //output reg                          
+        .maxi_lite_rresp     (maxi_lite_rresp ) , //input  wire [1:0]                   
+        .maxi_lite_rvalid    (maxi_lite_rvalid) , //input  wire                         
+
+        //local id 
+        .localID            () ,// input   wire [15:0] { bus dev func id}
+
+    //rdre11q to cpld  buffer
+    output reg                  rdCpld_valid    ,
+    output reg  [9:0]           rdCpld_dwLen    ,
+    output reg  [7:0]           rdCpld_tag      ,
+    output reg  [2:0]           rdCpld_TC       ,
+    output reg  [2:0]           rdCpld_attr     ,
+    output reg  [1:0]           rdCpld_at       ,
+    output reg  [11:0]          rdCpld_bytecnt  ,
+    output reg  [6:0]           rdCpld_lowaddr  ,
+    output reg  [127:0]         rdCpld_data     ,
+    output reg  [15:0]          rdCpld_reqid    ,
+    output reg  [15:0]          rdCpld_cplid    ,
+    output reg  [2:0]           rdCpld_status   
+    );
+
     
     
 //*******************PROGRAM AREA****************************************************/
