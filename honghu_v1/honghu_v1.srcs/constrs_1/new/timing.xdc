@@ -1,0 +1,1 @@
+create_clock -period 2.500 -name i_sys_clk_200m [get_ports i_sys_clk_200m_p]

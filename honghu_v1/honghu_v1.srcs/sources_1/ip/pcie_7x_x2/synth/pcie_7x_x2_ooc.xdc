@@ -57,6 +57,6 @@
 # This constraints file is not used in normal top-down synthesis (the default flow of Vivado)
 
 #
-create_clock -name pcie_7x_x2_sys_clk -period 8 [get_ports sys_clk]
+create_clock -name pcie_7x_x2_sys_clk -period 10 [get_ports sys_clk]
 # 100/125/250 MHz
 

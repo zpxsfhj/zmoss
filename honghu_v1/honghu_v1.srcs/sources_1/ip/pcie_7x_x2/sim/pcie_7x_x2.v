@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2024 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2025 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -351,7 +351,7 @@ output wire pcie_drp_rdy;
     .max_lnk_wdt("000010"),
     .max_lnk_spd("2"),
     .c_gen1(1'B1),
-    .pci_exp_int_freq(2),
+    .pci_exp_int_freq(3),
     .c_pcie_fast_config(0),
     .bar_0("FFFFF800"),
     .bar_1("00000000"),
@@ -487,7 +487,7 @@ output wire pcie_drp_rdy;
     .c_disable_scrambling("FALSE"),
     .c_disable_tx_aspm_l0s("FALSE"),
     .c_pcie_dbg_ports("TRUE"),
-    .pci_exp_ref_freq("1"),
+    .pci_exp_ref_freq("0"),
     .c_xlnx_ref_board("NONE"),
     .c_pcie_blk_locn("0"),
     .c_ur_atomic("FALSE"),

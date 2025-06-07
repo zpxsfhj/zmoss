@@ -64,7 +64,7 @@
 # Link Speed   - 2
 # Link Width   - X2
 # AXIST Width  - 64-bit
-# AXIST Frequ  - 2
+# AXIST Frequ  - 3
 #
 ###############################################################################
 # User Time Names / User Time Groups / Time Specs
@@ -117,7 +117,7 @@ set_property LOC RAMB36_X0Y20 [get_cells {inst/pcie_top_i/pcie_7x_i/pcie_bram_to
 # Timing Constraints
 ###############################################################################
 #
-create_clock -name txoutclk_x0y0 -period 8 [get_pins {inst/gt_top_i/pipe_wrapper_i/pipe_lane[0].gt_wrapper_i/gtp_channel.gtpe2_channel_i/TXOUTCLK}]
+create_clock -name txoutclk_x0y0 -period 10 [get_pins {inst/gt_top_i/pipe_wrapper_i/pipe_lane[0].gt_wrapper_i/gtp_channel.gtpe2_channel_i/TXOUTCLK}]
 #
 #
 set_false_path -to [get_pins {inst/gt_top_i/pipe_wrapper_i/pipe_clock_int.pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]

@@ -253,72 +253,7 @@ module rx_rounter_tb ();
         .rdReq_at       (rdReq_at     )   //output reg [1:0]             rdReq_at       
     );
 
-    bar_engine #(
-        .DATA_WIDTH     (64) ,
-        .AXIDATA_WIDTH  (32)  
-    )(
-        .i_rx_pkt_clk  () , //input wire 
-        .i_rx_pkt_rst  () , //input wire 
-        .i_tx_pkt_clk  () , //input wire 
-        .i_axi_clk     () , //input wire 
-        .i_axi_rst     () , //input wire 
-
-        .wrReq_valid    (wrReq_valid  ) , //input wire                     
-        .wrReq_data     (wrReq_data   ) , //input wire [DATA_WIDTH-1:0]    
-        .wrReq_dwlen    (wrReq_dwlen  ) , //input wire [9:0]               
-        .wrReq_address  (wrReq_address) , //input wire [31:0]              
-
-        .rdReq_valid    (rdReq_valid  ) , //input wire                      
-        .rdReq_address  (rdReq_address) , //input wire [31:0]               
-        .rdReq_reqid    (rdReq_reqid  ) , //input	wire   	[15:0]          
-        .rdReq_tag      (rdReq_tag    ) , //input	wire  	[7:0]           
-	    .rdReq_dwlen    (rdReq_dwlen  ) , //input	wire  	[9:0]           
-	    .rdReq_TC       (rdReq_TC     ) , //input	wire  	[2:0]           
-	    .rdReq_attr     (rdReq_attr   ) , //input	wire  	[2:0]           
-	    .rdReq_at       (rdReq_at     ) , //input	wire  	[1:0]           
-
-
-        .maxi_lite_awaddr     (maxi_lite_awaddr ) , //output reg  [31:0]  
-        .maxi_lite_awready    (maxi_lite_awready) , //input  wire         
-        .maxi_lite_awvalid    (maxi_lite_awvalid) , //output reg          
-
-        .maxi_lite_wdata   (maxi_lite_wdata ) , //output reg  [AXIDATA_WIDTH -1 :0]   
-        .maxi_lite_wready  (maxi_lite_wready) , //input  wire                         
-        .maxi_lite_wstrb   (maxi_lite_wstrb ) , //output wire [AXIDATA_WIDTH/8 -1:0]  
-        .maxi_lite_wvalid  (maxi_lite_wvalid) , //output reg                          
-
-        .maxi_lite_bready    (maxi_lite_bready) , //output wire               
-        .maxi_lite_bresp     (maxi_lite_bresp ) , //input  wire [1:0]         
-        .maxi_lite_bvalid    (maxi_lite_bvalid) , //input  wire               
-
-        .maxi_lite_araddr    (maxi_lite_araddr ) , //output reg  [31:0]      
-        .maxi_lite_arready   (maxi_lite_arready) , //input  wire             
-        .maxi_lite_arvalid   (maxi_lite_arvalid) , //output reg              
-
-        .maxi_lite_rdata     (maxi_lite_rdata ) , //input  wire [AXIDATA_WIDTH -1 :0]   
-        .maxi_lite_rready    (maxi_lite_rready) , //output reg                          
-        .maxi_lite_rresp     (maxi_lite_rresp ) , //input  wire [1:0]                   
-        .maxi_lite_rvalid    (maxi_lite_rvalid) , //input  wire                         
-
-        //local id 
-        .localID            () ,// input   wire [15:0] { bus dev func id}
-
-    //rdre11q to cpld  buffer
-    output reg                  rdCpld_valid    ,
-    output reg  [9:0]           rdCpld_dwLen    ,
-    output reg  [7:0]           rdCpld_tag      ,
-    output reg  [2:0]           rdCpld_TC       ,
-    output reg  [2:0]           rdCpld_attr     ,
-    output reg  [1:0]           rdCpld_at       ,
-    output reg  [11:0]          rdCpld_bytecnt  ,
-    output reg  [6:0]           rdCpld_lowaddr  ,
-    output reg  [127:0]         rdCpld_data     ,
-    output reg  [15:0]          rdCpld_reqid    ,
-    output reg  [15:0]          rdCpld_cplid    ,
-    output reg  [2:0]           rdCpld_status   
-    );
-
-    
+   
     
 //*******************PROGRAM AREA****************************************************/
     initial begin

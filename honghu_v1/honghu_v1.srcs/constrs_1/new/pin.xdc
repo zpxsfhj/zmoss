@@ -17,3 +17,6 @@ set_property PACKAGE_PIN K14     [get_ports o_led[2] ]
 set_property IOSTANDARD LVCMOS33 [get_ports o_led[2] ]
 set_property PACKAGE_PIN K13     [get_ports o_led[3] ]
 set_property IOSTANDARD LVCMOS33 [get_ports o_led[3] ]
+
+set_property PACKAGE_PIN R4 [get_ports i_sys_clk_200m_p]
+set_property IOSTANDARD DIFF_SSTL15 [get_ports i_sys_clk_200m_p]

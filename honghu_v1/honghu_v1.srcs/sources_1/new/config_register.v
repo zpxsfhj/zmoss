@@ -102,9 +102,9 @@ module config_register #(
 
     reg [15:0] register_waddr ,register_raddr;
 
-    parameter ADDR_BAR_TEST     = 16'h0001;
-    parameter ADDR_EDGE_DETECT  = 16'h0002;
-    parameter ADDR_SMOOTH_FILTER  = 16'h0003;
+    parameter ADDR_BAR_TEST     = 16'h0000;
+    parameter ADDR_EDGE_DETECT  = 16'h0001;
+    parameter ADDR_SMOOTH_FILTER  = 16'h0002;
     
     
 //*******************INSTANCE AREA***************************************************/
@@ -166,7 +166,7 @@ module config_register #(
         if(i_rst)
             register_waddr <= 'd0;
         else if(state == IDLE && saxi_lite_awvalid == 'd1)
-            register_waddr <= saxi_lite_awaddr[15:0] ;
+            register_waddr <= {2'd0,saxi_lite_awaddr[15:2]} ;
         else
             register_waddr <= register_waddr;
     end
@@ -174,7 +174,7 @@ module config_register #(
         if(i_rst)
             register_raddr <= 'd0;
         else if(state == IDLE && saxi_lite_arvalid == 'd1)
-            register_raddr <= saxi_lite_araddr[15:0] ;
+            register_raddr <= {2'd0,saxi_lite_araddr[15:2]};
         else
             register_raddr <= register_raddr;
     end
@@ -206,7 +206,7 @@ module config_register #(
         if(i_rst)begin
             saxi_lite_rdata <= 'd0;
         end
-        else if(state == REG_RD_ADDR && saxi_lite_rvalid == 'd1)begin
+        else if(state == REG_RD_ADDR)begin
             case (register_raddr)
                 ADDR_BAR_TEST       :   saxi_lite_rdata <= bar_test     ;
                 ADDR_EDGE_DETECT    :   saxi_lite_rdata <= edge_detect  ;
