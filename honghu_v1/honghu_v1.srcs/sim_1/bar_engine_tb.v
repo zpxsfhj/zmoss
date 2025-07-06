@@ -73,18 +73,20 @@ module bar_engine_tb (
 
     wire [15:0] localID ;
 
-    wire          rdCpld_valid   ;
-    wire  [9:0]   rdCpld_dwLen   ;
-    wire  [7:0]   rdCpld_tag     ;
-    wire  [2:0]   rdCpld_TC      ;
-    wire  [2:0]   rdCpld_attr    ;
-    wire  [1:0]   rdCpld_at      ;
-    wire  [11:0]  rdCpld_bytecnt ;
-    wire  [6:0]   rdCpld_lowaddr ;
-    wire  [127:0] rdCpld_data    ;
-    wire  [15:0]  rdCpld_reqid   ;
-    wire  [15:0]  rdCpld_cplid   ;
-    wire  [2:0]   rdCpld_status  ;
+    reg   [3:0]rdCpld_eof_index ;
+    reg        rdCpld_eof       ;
+    reg          rdCpld_valid   ;
+    reg  [9:0]   rdCpld_dwLen   ;
+    reg  [7:0]   rdCpld_tag     ;
+    reg  [2:0]   rdCpld_TC      ;
+    reg  [2:0]   rdCpld_attr    ;
+    reg  [1:0]   rdCpld_at      ;
+    reg  [11:0]  rdCpld_bytecnt ;
+    reg  [6:0]   rdCpld_lowaddr ;
+    reg  [63:0]  rdCpld_data    ;
+    reg  [15:0]  rdCpld_reqid   ;
+    reg  [15:0]  rdCpld_cplid   ;
+    reg  [2:0]   rdCpld_status  ;
 
     reg             s_axis_tx_tready;
     wire [7 : 0]    s_axis_tx_tkeep ;
@@ -93,11 +95,10 @@ module bar_engine_tb (
     wire            s_axis_tx_tvalid;
     wire [63: 0]    s_axis_tx_tdata ;
 
-    wire  [3:0]rdCpld_eof_index ;
-    wire       rdCpld_eof       ;
+    
 
 //*******************INSTANCE AREA***************************************************/
-    bar_engine #(
+    /* bar_engine #(
         .DATA_WIDTH     (64) ,
         .AXIDATA_WIDTH  (32)  
     )
@@ -193,7 +194,7 @@ module bar_engine_tb (
         .o_smooth_filter    () , //output reg [31:0]                   
         .o_bar_test         ()   //output reg [31:0]                   
     
-    );
+    ); */
 
     bar_cpl_buffer #(
         .DATA_WIDTH      (32) , //parameter 
@@ -329,6 +330,184 @@ module bar_engine_tb (
         s_axis_tx_tready = 1;
     end
 
-    assign rdCpld_eof = 1'b1;
-    assign rdCpld_eof_index = 4'd3;
+    initial begin
+        rdCpld_eof_index = 'd0;
+        rdCpld_eof       = 'd0;
+        rdCpld_valid     = 'd0;
+        rdCpld_dwLen     = 'd0;
+        rdCpld_tag       = 'd0;
+        rdCpld_TC        = 'd0;
+        rdCpld_attr      = 'd0;
+        rdCpld_at        = 'd0;
+        rdCpld_bytecnt   = 'd0;
+        rdCpld_lowaddr   = 'd0;
+        rdCpld_data      = 'd0;
+        rdCpld_reqid     = 'd0;
+        rdCpld_cplid     = 'd0;
+        rdCpld_status    = 'd0;
+        /* #3000
+        @(posedge cfg_axi_clk)
+        rdCpld_eof_index = `DLY  4'd3;
+        rdCpld_eof       = `DLY  1'd1;
+        rdCpld_valid     = `DLY  1'd1;
+        rdCpld_dwLen     = `DLY 10'd1;
+        rdCpld_tag       = `DLY  8'd0;
+        rdCpld_TC        = `DLY  3'd0;
+        rdCpld_attr      = `DLY  3'd0;
+        rdCpld_at        = `DLY  2'd0;
+        rdCpld_bytecnt   = `DLY 12'd4;
+        rdCpld_lowaddr   = `DLY  7'd8;
+        rdCpld_data      = `DLY 64'h12345678;
+        rdCpld_reqid     = `DLY 16'd12;
+        rdCpld_cplid     = `DLY 16'd18;
+        rdCpld_status    = `DLY  3'd0;
+        #3000
+        @(posedge cfg_axi_clk)
+        rdCpld_eof_index = `DLY  4'd7;
+        rdCpld_eof       = `DLY  1'd1;
+        rdCpld_valid     = `DLY  1'd1;
+        rdCpld_dwLen     = `DLY 10'd2;
+        rdCpld_tag       = `DLY  8'd0;
+        rdCpld_TC        = `DLY  3'd0;
+        rdCpld_attr      = `DLY  3'd0;
+        rdCpld_at        = `DLY  2'd0;
+        rdCpld_bytecnt   = `DLY 12'd8;
+        rdCpld_lowaddr   = `DLY  7'd8;
+        rdCpld_data      = `DLY 64'h0102030405060708;
+        rdCpld_reqid     = `DLY 16'd12;
+        rdCpld_cplid     = `DLY 16'd18;
+        rdCpld_status    = `DLY  3'd0;
+ */
+        #3000
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =   4'd3;
+        rdCpld_eof       =   1'd0;
+        rdCpld_valid     =   1'd1;
+        rdCpld_dwLen     =  10'd5;
+        rdCpld_tag       =   8'd0;
+        rdCpld_TC        =   3'd0;
+        rdCpld_attr      =   3'd0;
+        rdCpld_at        =   2'd0;
+        rdCpld_bytecnt   =  12'd20;
+        rdCpld_lowaddr   =   7'd8;
+        rdCpld_data      =  64'h0102030405060708;
+        rdCpld_reqid     =  16'd12;
+        rdCpld_cplid     =  16'd18;
+        rdCpld_status    =   3'd0;
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =  4'd3;
+        rdCpld_eof       =  1'd0;
+        rdCpld_valid     =  1'd1;
+        rdCpld_dwLen     = 10'd5;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd20;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0001020304050607;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =  4'd3;
+        rdCpld_eof       =  1'd1;
+        rdCpld_valid     =  1'd1;
+        rdCpld_dwLen     = 10'd5;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd20;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0800010203040506;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =  4'd3;
+        rdCpld_eof       =  1'd1;
+        rdCpld_valid     =  1'd0;
+        rdCpld_dwLen     = 10'd5;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd20;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0800010203040506;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+        #3000
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =   4'd7;
+        rdCpld_eof       =  1'd0;
+        rdCpld_valid     =  1'd1;
+        rdCpld_dwLen     = 10'd6;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd24;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0102030405060708;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =  4'd7;
+        rdCpld_eof       =  1'd0;
+        rdCpld_valid     =  1'd1;
+        rdCpld_dwLen     = 10'd6;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd24;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0001020304050607;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =  4'd7;
+        rdCpld_eof       =  1'd1;
+        rdCpld_valid     =  1'd1;
+        rdCpld_dwLen     = 10'd6;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd24;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0800010203040506;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+        @(posedge cfg_axi_clk)
+        `DLY
+        rdCpld_eof_index =  4'd3;
+        rdCpld_eof       =  1'd1;
+        rdCpld_valid     =  1'd0;
+        rdCpld_dwLen     = 10'd5;
+        rdCpld_tag       =  8'd0;
+        rdCpld_TC        =  3'd0;
+        rdCpld_attr      =  3'd0;
+        rdCpld_at        =  2'd0;
+        rdCpld_bytecnt   = 12'd20;
+        rdCpld_lowaddr   =  7'd8;
+        rdCpld_data      = 64'h0800010203040506;
+        rdCpld_reqid     = 16'd12;
+        rdCpld_cplid     = 16'd18;
+        rdCpld_status    =  3'd0;
+    end
+
 endmodule

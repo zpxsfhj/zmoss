@@ -78,6 +78,8 @@ module bar_engine #(
     input   wire [15:0]                 localID             ,//{ bus dev func id}
 
 	//rdreq to cpld  buffer
+    output wire                     rdCpld_eof       ,
+    output wire  [3:0]              rdCpld_eof_index ,
     output reg                      rdCpld_valid    ,
     output reg  [9:0]               rdCpld_dwLen    ,
     output reg  [7:0]               rdCpld_tag      ,
@@ -331,7 +333,8 @@ module bar_engine #(
         end
     end
 
-
+    assign rdCpld_eof = 1'b1;
+    assign rdCpld_eof_index = 4'd3 ;
     
     
 endmodule

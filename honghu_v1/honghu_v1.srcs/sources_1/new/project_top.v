@@ -105,7 +105,8 @@ module project_top #(
     honghu_pcie_top #(
         .C_NUM_LANES        (C_NUM_LANES     ),
         .C_PCI_DATA_WIDTH   (C_PCI_DATA_WIDTH)
-    )(
+    )
+    honghu_pcie_top_inst(
         .o_pcie_txp (o_pcie_txp) , //output wire [C_NUM_LANES - 1 : 0] 
         .o_pcie_txn (o_pcie_txn) , //output wire [C_NUM_LANES - 1 : 0] 
         .i_pcie_rxp (i_pcie_rxp) , //input  wire [C_NUM_LANES - 1 : 0] 

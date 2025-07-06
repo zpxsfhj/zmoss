@@ -317,7 +317,7 @@ module honghu_pcie_top #(
       .tx_err_drop(tx_err_drop)            // output wire tx_err_drop
   );
 
-    vio_saxi vio_saxi_inst (
+    /* vio_saxi vio_saxi_inst (
         .clk(pcie_user_clk),                // input wire clk
         .probe_in0 (s_axis_tx_tready),    // input wire [0 : 0] probe_in0
         .probe_out0(s_axis_tx_tdata ),  // output wire [63 : 0] probe_out0
@@ -325,8 +325,16 @@ module honghu_pcie_top #(
         .probe_out2(s_axis_tx_tlast ),  // output wire [0 : 0] probe_out2
         .probe_out3(s_axis_tx_tvalid),  // output wire [0 : 0] probe_out3
         .probe_out4(s_axis_tx_tuser )  // output wire [3 : 0] probe_out4
+    ); */
+    ila_1 ila_saxi(
+        .clk(pcie_user_clk),
+        .probe0(s_axis_tx_tready ),
+        .probe1(s_axis_tx_tdata ),
+        .probe2(s_axis_tx_tkeep ),
+        .probe3(s_axis_tx_tlast ),
+        .probe4(s_axis_tx_tvalid),
+        .probe5(s_axis_tx_tuser )
     );
-
 
     ila_0 ila_pcie_number (
         .clk   (pcie_user_clk), // input wire clk
@@ -574,6 +582,8 @@ module honghu_pcie_top #(
         .localID            (localID) ,// input   wire [15:0] { bus dev func id}
 
         //rdre11q to cpld  buffer               
+        .rdCpld_eof_index   (rdCpld_eof_index), //input wire  [3:0]               
+        .rdCpld_eof         (rdCpld_eof      ), //input wire        
         .rdCpld_valid       (rdCpld_valid    ) , //output reg                  
         .rdCpld_dwLen       (rdCpld_dwLen    ) , //output reg  [9:0]           
         .rdCpld_tag         (rdCpld_tag      ) , //output reg  [7:0]           
@@ -590,19 +600,57 @@ module honghu_pcie_top #(
 
     ila_6 ila_cpld(
         .clk(cfg_axi_clk), // input wire clk
-        .probe0 (rdCpld_valid  ), // input wire [0:0]  probe0  
-        .probe1 (rdCpld_dwLen  ), // input wire [9:0]  probe1 
-        .probe2 (rdCpld_tag    ), // input wire [7:0]  probe2 
-        .probe3 (rdCpld_TC     ), // input wire [2:0]  probe3 
-        .probe4 (rdCpld_attr   ), // input wire [2:0]  probe4 
-        .probe5 (rdCpld_at     ), // input wire [1:0]  probe5 
-        .probe6 (rdCpld_bytecnt), // input wire [11:0]  probe6 
-        .probe7 (rdCpld_lowaddr), // input wire [6:0]  probe7 
-        .probe8 (rdCpld_data   ), // input wire [63:0]  probe8 
-        .probe9 (rdCpld_reqid  ), // input wire [15:0]  probe9 
-        .probe10(rdCpld_cplid  ), // input wire [15:0]  probe10 
-        .probe11(rdCpld_status ) // input wire [2:0]  probe11
+        .probe0 (rdCpld_valid  ), // width:  1  
+        .probe1 (rdCpld_dwLen  ), // width: 10 
+        .probe2 (rdCpld_tag    ), // width:  8  
+        .probe3 (rdCpld_TC     ), // width:  3  
+        .probe4 (rdCpld_attr   ), // width:  3  
+        .probe5 (rdCpld_at     ), // width:  2  
+        .probe6 (rdCpld_bytecnt), // width: 12 
+        .probe7 (rdCpld_lowaddr), // width:  7  
+        .probe8 (rdCpld_data   ), // width: 64 
+        .probe9 (rdCpld_reqid  ), // width: 16 
+        .probe10(rdCpld_cplid  ), // width: 16 
+        .probe11(rdCpld_status ),  // width:  3  
+        .probe12(rdCpld_eof_index),
+        .probe13(rdCpld_eof      )
     );
+
+    bar_cpl_buffer #(
+        .DATA_WIDTH      (32) , //parameter 
+        .PCIE_DATA_WIDTH (64)   //parameter 
+    )
+    bar_cpl_buffer_inst(
+        .i_clk   (cfg_axi_clk) ,//input wire 
+        .i_rst   (cfg_axi_rst) ,//input wire 
+
+        .i_tx_clk  (pcie_user_clk ), //input wire 
+        .i_tx_rst  (user_reset_out), //input wire 
+
+        .tx_ready   (s_axis_tx_tready) , //input  wire                             tx_ready
+        .tx_tkeep   (s_axis_tx_tkeep ) , //output wire [PCIE_DATA_WIDTH/8 - 1 : 0] tx_tkeep
+        .tx_tlast   (s_axis_tx_tlast ) , //output wire                             tx_tlast
+        .tx_tuser   (s_axis_tx_tuser ) , //output wire [3:0]                       tx_tuser
+        .tx_valid   (s_axis_tx_tvalid) , //output reg                              tx_valid
+        .tx_data    (s_axis_tx_tdata ) , //output reg  [PCIE_DATA_WIDTH - 1: 0]    tx_data 
+        //cpld packt
+        .rdCpld_eof_index (rdCpld_eof_index), //input wire  [3:0]               
+        .rdCpld_eof       (rdCpld_eof      ), //input wire                      
+        .rdCpld_valid     (rdCpld_valid    ), //input wire                      
+        .rdCpld_dwLen     (rdCpld_dwLen    ), //input wire  [9:0]               
+        .rdCpld_tag       (rdCpld_tag      ), //input wire  [7:0]               
+        .rdCpld_TC        (rdCpld_TC       ), //input wire  [2:0]               
+        .rdCpld_attr      (rdCpld_attr     ), //input wire  [2:0]               
+        .rdCpld_at        (rdCpld_at       ), //input wire  [1:0]               
+        .rdCpld_bytecnt   (rdCpld_bytecnt  ), //input wire  [11:0]              
+        .rdCpld_lowaddr   (rdCpld_lowaddr  ), //input wire  [6:0]               
+        .rdCpld_data      (rdCpld_data     ), //input wire  [DATA_WIDTH -1 :0]  
+        .rdCpld_reqid     (rdCpld_reqid    ), //input wire  [15:0]              
+        .rdCpld_cplid     (rdCpld_cplid    ), //input wire  [15:0]              
+        .rdCpld_status    (rdCpld_status   )  //input wire  [2:0]               
+
+    );
+
     /* bar_cpl_buffer #(
         .DATA_WIDTH      (32) , //parameter 
         .PCIE_DATA_WIDTH (64)   //parameter 

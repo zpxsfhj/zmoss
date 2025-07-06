@@ -39,7 +39,7 @@ module bar_cpl_buffer #(
     output wire [PCIE_DATA_WIDTH/8 - 1 : 0] tx_tkeep    ,
     output wire                             tx_tlast    ,
     output wire [3:0]                       tx_tuser    ,
-    output reg                              tx_valid    ,
+    output wire                             tx_valid    ,
     output reg  [PCIE_DATA_WIDTH - 1: 0]    tx_data     ,
     //cpld packt
     input wire                          rdCpld_eof       ,
@@ -59,8 +59,8 @@ module bar_cpl_buffer #(
     
 );
 //*******************DEFINE Variables************************************************/
-    parameter CPLD_HEAD_WIDTH = 96           ;
-    parameter CPLD_DATA_WIDTH = DATA_WIDTH + 1;
+    parameter CPLD_HEAD_WIDTH = 96 + 4 ;
+    parameter CPLD_DATA_WIDTH = PCIE_DATA_WIDTH + 1;
 
     parameter IDLE = 0;
     parameter HEAD_SEND0 = 1;
@@ -73,8 +73,14 @@ module bar_cpl_buffer #(
 
     wire [2:0] cpld_fmt;
     wire [4:0] cpld_type;
+    wire [1:0] cpld_at ;
+    wire       cpld_ep ;
+    wire       cpld_td ;
+    wire       cpld_th ;
+
 
     wire [31:0] cpld_head0,cpld_head1,cpld_head2;
+    reg [31:0] cpld_head0_r,cpld_head1_r,cpld_head2_r;
 
     reg                         head_w_fifo_en  ;
     reg [CPLD_HEAD_WIDTH-1 : 0] head_w_fifo_data;
@@ -92,8 +98,6 @@ module bar_cpl_buffer #(
 
     reg [2:0] data_r_fifo_valid;
 
-    reg [PCIE_DATA_WIDTH - 1: 0] data_out;
-
     reg [PCIE_DATA_WIDTH*2 -1 : 0]  rdCpld_data_2r ;
     reg                             rdCpld_valid_r ;
     reg                             rdCpld_eof_r   ;
@@ -110,6 +114,10 @@ module bar_cpl_buffer #(
     reg  [15:0]                  rdCpld_reqid_r     ;
     reg  [15:0]                  rdCpld_cplid_r     ;
     reg  [2:0]                   rdCpld_status_r    ;
+
+    wire data_w_fifo_eof ;
+
+    reg [3:0] tx_eof_index ;
 
 //*******************INSTANCE AREA***************************************************/
     async_fifo_fwft #(
@@ -148,14 +156,31 @@ module bar_cpl_buffer #(
 //*******************PROGRAM AREA****************************************************/
     assign cpld_fmt = 3'b010    ;
     assign cpld_type = 5'b01010 ;
-    
+    assign cpld_at   = 2'b00;
+    assign cpld_ep   = 1'b1;
+    assign cpld_td   = 1'b0;
+    assign cpld_th   = 1'b0;
     //cpld×é°üÍ·
-    assign cpld_head0 = {cpld_fmt, cpld_type, rdCpld_TC, 1'b0, rdCpld_attr[2], 2'b0,
-                            2'd1,rdCpld_attr[1:0],rdCpld_dwLen[9:8], rdCpld_dwLen[7:0]
+    assign cpld_head0 = {cpld_fmt, cpld_type, 1'b0, rdCpld_TC, 
+                         1'b0, rdCpld_attr[2], 1'b0, cpld_th, cpld_td, cpld_ep,
+                         rdCpld_attr[1:0],cpld_at,rdCpld_dwLen[9:8], rdCpld_dwLen[7:0]
                              };
     assign cpld_head1 = {rdCpld_cplid[15:8], rdCpld_cplid[7:0], rdCpld_status,1'b0, 
                                             rdCpld_bytecnt[11:8], rdCpld_bytecnt[7:0]};
     assign cpld_head2 = {rdCpld_reqid[15:8], rdCpld_reqid[7:0], rdCpld_tag, 1'b0, rdCpld_lowaddr};
+    
+    always @(posedge i_clk) begin
+        if(i_rst)begin
+            cpld_head0_r <= 'd0;
+            cpld_head1_r <= 'd0;
+            cpld_head2_r <= 'd0;
+        end
+        else if(rdCpld_valid & ~rdCpld_valid_r) begin
+            cpld_head0_r <= cpld_head0;
+            cpld_head1_r <= cpld_head1;
+            cpld_head2_r <= cpld_head2;
+        end
+    end
     always @(posedge i_clk) begin
         if(i_rst)begin
             rdCpld_valid_r <= 'd0;
@@ -164,7 +189,7 @@ module bar_cpl_buffer #(
         end
         else begin
             rdCpld_valid_r <= rdCpld_valid ;
-            rdCpld_eof_r   <= rdCpld_eof   ;
+            rdCpld_eof_r   <= rdCpld_valid & rdCpld_eof   ;
             rdCpld_eof_index_r <= rdCpld_eof_index ;
         end
     end
@@ -173,7 +198,7 @@ module bar_cpl_buffer #(
         if(i_rst)
             rdCpld_eof_flag <= 'd0;
         else if(rdCpld_eof_r)begin
-            if(PCIE_DATA_WIDTH/8 - rdCpld_eof_index_r >= 4)
+            if(rdCpld_eof_index_r + 4 < PCIE_DATA_WIDTH/8)
                 rdCpld_eof_flag <= 1'b0;
             else
                 rdCpld_eof_flag <= 1'b1;
@@ -181,6 +206,7 @@ module bar_cpl_buffer #(
         else
             rdCpld_eof_flag <= 1'b0;  
     end
+    assign data_w_fifo_eof = rdCpld_eof_r & (rdCpld_eof_index_r + 4 < PCIE_DATA_WIDTH/8) | rdCpld_eof_flag ;
     always @(posedge i_clk) begin
         if(i_rst)
             rdCpld_data_2r <= 'd0;
@@ -194,7 +220,7 @@ module bar_cpl_buffer #(
         end
         else begin
             data_w_fifo_en   <= rdCpld_valid_r | rdCpld_eof_flag;
-            data_w_fifo_data <= {rdCpld_eof_r,rdCpld_data_2r[32 +:PCIE_DATA_WIDTH]};
+            data_w_fifo_data <= {data_w_fifo_eof,rdCpld_data_2r[32 +:PCIE_DATA_WIDTH]};
         end
 
     end
@@ -205,8 +231,8 @@ module bar_cpl_buffer #(
             head_w_fifo_data    <= 'd0;
         end 
         else begin
-            head_w_fifo_en   <= rdCpld_valid & rdCpld_eof;
-            head_w_fifo_data <= {cpld_head2,cpld_head1,cpld_head0};
+            head_w_fifo_en   <= data_w_fifo_eof;
+            head_w_fifo_data <= {rdCpld_eof_index_r,cpld_head2_r,cpld_head1_r,cpld_head0_r};
         end
     end
 
@@ -214,7 +240,7 @@ module bar_cpl_buffer #(
     
     //{src_dsc,str,err_fwd,ecrc}
     assign tx_tuser = 4'd0;
-    assign tx_tkeep = {PCIE_DATA_WIDTH/8{1'b1}} ;
+    assign tx_tkeep = head_r_fifo_en && head_r_fifo_data[96 +:4] == 7 ? 8'h0f : 8'hff ;
 
 
 
@@ -242,8 +268,14 @@ module bar_cpl_buffer #(
                 else
                     next_state = state;
             end
-            HEAD_SEND1:
-                next_state = DATA_SEND;
+            HEAD_SEND1:begin
+                if(tx_ready & data_r_fifo_data[CPLD_DATA_WIDTH-1])
+                    next_state = IDLE ;
+                else if(tx_ready)
+                    next_state = DATA_SEND;
+                else
+                    next_state = state ;
+            end
             DATA_SEND: begin
                 if(tx_ready & data_r_fifo_data[CPLD_DATA_WIDTH-1])
                     next_state = IDLE;
@@ -254,45 +286,19 @@ module bar_cpl_buffer #(
         endcase
     end
 
-    generate
-        if(PCIE_DATA_WIDTH == 64)begin
-            assign data_r_fifo_en = (state == HEAD_SEND1 ||state == DATA_SEND ) && tx_ready;
-            assign head_r_fifo_en = (state == HEAD_SEND0 ||state == HEAD_SEND1) && tx_ready;
-            always @(posedge i_tx_clk) begin
-                    if(i_rst)
-                        tx_data <= 'd0;
-                    else if(state == IDLE && (~head_w_empty & ~head_w_empty))
-                        tx_data <= {head_r_fifo_data[1], head_r_fifo_data[0]};
-                    else if(state == HEAD_SEND0 && tx_ready)
-                        tx_data <= {data_r_fifo_data,
-                                    data_r_fifo_data[8*8 +:8],data_r_fifo_data[9*8 +:8],
-                                    data_r_fifo_data[10*8 +:8],data_r_fifo_data[11*8 +:8]};
-                    else
-                        tx_data <= data_out;
-            end
-        end
-        else begin
-            assign data_r_fifo_en = (state == HEAD_SEND0 ||state == DATA_SEND) && tx_ready;
-            assign head_r_fifo_en = state == HEAD_SEND0 && tx_ready;
-            always @(posedge i_tx_clk) begin
-                    if(i_rst)
-                        tx_data <= 'd0;
-                    else if(state == IDLE && (~head_w_empty & ~head_w_empty))
-                        tx_data <= {data_r_fifo_data, 
-                                    data_r_fifo_data[8*8 +:8],data_r_fifo_data[9*8 +:8],
-                                    data_r_fifo_data[10*8 +:8],data_r_fifo_data[11*8 +:8],
-                                    data_r_fifo_data[4*8 +:8],data_r_fifo_data[5*8 +:8],
-                                    data_r_fifo_data[6*8 +:8],data_r_fifo_data[7*8 +:8],
-                                    data_r_fifo_data[0*8 +:8],data_r_fifo_data[1*8 +:8],
-                                    data_r_fifo_data[2*8 +:8],data_r_fifo_data[3*8 +:8]
-                                    };
-                    else
-                        tx_data <= data_out;
-
-
-            end
-        end
-    endgenerate
+    assign data_r_fifo_en = (state == HEAD_SEND1 ||state == DATA_SEND ) && tx_ready;
+    assign head_r_fifo_en = state == DATA_SEND && data_r_fifo_data[CPLD_DATA_WIDTH-1] && tx_ready;
+    always @(*) begin
+            if(state == HEAD_SEND0 && tx_ready)
+                tx_data = head_r_fifo_data[63:0];
+            else if(state == HEAD_SEND1 && tx_ready)
+                tx_data = {data_r_fifo_data[4*8 +:8],data_r_fifo_data[5*8 +:8],
+                            data_r_fifo_data[6*8 +:8],data_r_fifo_data[7*8 +:8],
+                            head_r_fifo_data[95:64]
+                            };
+            else
+                tx_data = data_r_fifo_data[63:0];
+    end
 
     reg [3:0]         cnt_data_tx;
     wire                add_cnt_data_tx;
@@ -314,10 +320,10 @@ module bar_cpl_buffer #(
     
     assign add_cnt_data_tx = state == DATA_SEND && tx_ready;
     assign end_cnt_data_tx = add_cnt_data_tx && (cnt_data_tx == max_data_tx - 1'b1);
-    always @(posedge i_tx_clk) begin
+    /* always @(posedge i_tx_clk) begin
         if(i_tx_rst)
             tx_valid <= 'd0;
-        else if(state == IDLE && (~head_w_empty & ~head_w_empty))
+        else if(state == IDLE && (~head_w_empty & ~data_w_empty))
             tx_valid <= 1'b1;
         else if(state == HEAD_SEND0)
             tx_valid <= 1'b1;
@@ -325,13 +331,8 @@ module bar_cpl_buffer #(
             tx_valid <= 1'b1;
         else
             tx_valid <= 1'b0;
-    end
-    always @(posedge i_tx_clk) begin
-        if(i_rst)
-            data_out <= 'd0;
-        else
-            data_out <= {data_r_fifo_data,data_out[PCIE_DATA_WIDTH -33:0]};
-    end
+    end */
+    assign tx_valid = state == HEAD_SEND0 || state == HEAD_SEND1 || state == DATA_SEND ;
     assign tx_tlast       = data_r_fifo_en & data_r_fifo_data[CPLD_DATA_WIDTH-1] ;
 
     
