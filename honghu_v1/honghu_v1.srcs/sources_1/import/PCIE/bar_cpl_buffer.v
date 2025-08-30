@@ -121,36 +121,36 @@ module bar_cpl_buffer #(
 
 //*******************INSTANCE AREA***************************************************/
     async_fifo_fwft #(
-		.C_WIDTH(CPLD_HEAD_WIDTH),
-		.C_DEPTH(1024)
+        .C_WIDTH(CPLD_HEAD_WIDTH),
+        .C_DEPTH(1024)
     ) inst_head_async_fifo_fwft (
-		.RD_CLK   (i_tx_clk),
-		.RD_RST   (i_tx_rst),
-		.WR_CLK   (i_clk),
-		.WR_RST   (i_rst),
-		.WR_DATA  (head_w_fifo_data),
-		.WR_EN    (head_w_fifo_en),
-		.RD_DATA  (head_r_fifo_data),
-		.RD_EN    (head_r_fifo_en),
-		.WR_FULL  (head_w_full ),
-		.RD_EMPTY (head_w_empty)
-	);
+        .RD_CLK   (i_tx_clk),
+        .RD_RST   (i_tx_rst),
+        .WR_CLK   (i_clk),
+        .WR_RST   (i_rst),
+        .WR_DATA  (head_w_fifo_data),
+        .WR_EN    (head_w_fifo_en),
+        .RD_DATA  (head_r_fifo_data),
+        .RD_EN    (head_r_fifo_en),
+        .WR_FULL  (head_w_full ),
+        .RD_EMPTY (head_w_empty)
+    );
     
     async_fifo_fwft #(
-		.C_WIDTH(CPLD_DATA_WIDTH),
-		.C_DEPTH(1024)
-	) inst_data_async_fifo_fwft (
-		.RD_CLK   (i_tx_clk),
-		.RD_RST   (i_tx_rst),
-		.WR_CLK   (i_clk),
-		.WR_RST   (i_rst),
-		.WR_DATA  (data_w_fifo_data),
-		.WR_EN    (data_w_fifo_en),
-		.RD_DATA  (data_r_fifo_data),
-		.RD_EN    (data_r_fifo_en),
-		.WR_FULL  (data_w_full),
-		.RD_EMPTY (data_w_empty)
-	);
+        .C_WIDTH(CPLD_DATA_WIDTH),
+        .C_DEPTH(1024)
+    ) inst_data_async_fifo_fwft (
+        .RD_CLK   (i_tx_clk),
+        .RD_RST   (i_tx_rst),
+        .WR_CLK   (i_clk),
+        .WR_RST   (i_rst),
+        .WR_DATA  (data_w_fifo_data),
+        .WR_EN    (data_w_fifo_en),
+        .RD_DATA  (data_r_fifo_data),
+        .RD_EN    (data_r_fifo_en),
+        .WR_FULL  (data_w_full),
+        .RD_EMPTY (data_w_empty)
+    );
     
     
 //*******************PROGRAM AREA****************************************************/

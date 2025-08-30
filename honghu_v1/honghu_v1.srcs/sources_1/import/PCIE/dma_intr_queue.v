@@ -45,9 +45,15 @@ module dma_intr_queue (
     input  wire         c2h_fifo_rd_en  ,
     output wire [63:0]  c2h_fifo_rd_data, // {24'd0,l_s,chn,len}
 
+    input  wire [63:0]  c2h_req_dma_ack,     // {25'd0,en,chn,addr}
+    input  wire         c2h_req_dma_ack_en,
+
+    output reg [31:0] c2h0_dma_addr ,
+    output reg        c2h0_dma_en   ,
+
     input   wire        chn0_req_tx_len_valid   ,
     input   wire [31:0] chn0_req_tx_len         ,
-    input   wire [1:0]  chn0_req_tx_status      ,
+    input   wire [1:0]  chn0_req_tx_status      ,//2'b01:start  2'b10:end
     output  wire        chn0_req_tx_len_ready   
     
 );
@@ -170,4 +176,15 @@ module dma_intr_queue (
         endcase
     end
     assign cfg_interrupt_di = 'd0 ;
+
+    always @(posedge i_clk) begin
+        if(i_rst)begin
+            c2h0_dma_addr <= 'd0;
+            c2h0_dma_en   <= 'd0;
+        end
+        else if(c2h_req_dma_ack_en && c2h_req_dma_ack[37:32] == 6'd0)begin
+            c2h0_dma_addr <= c2h_req_dma_ack[31:0];
+            c2h0_dma_en   <= c2h_req_dma_ack[38];
+        end
+    end
 endmodule
