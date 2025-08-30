@@ -45,8 +45,10 @@ int main(int argc,char** argv){
             return -1;
         }
         io.id = id;
-        io.regaddr = atoi(argv[3]);
-        io.regdata = atoi(argv[4]);
+        io.regaddr = strtoul(argv[3],NULL,16);
+        io.regdata = strtoul(argv[4],NULL,16);
+        printf("argv[3] addr:%s\r\n",argv[3]);
+        printf("io.regaddr addr:%x\r\n",io.regaddr);
         status = fpga_reg_write(fpga,io.regaddr,io.regdata);
         if(status != 0)
         {
@@ -70,11 +72,14 @@ int main(int argc,char** argv){
             return -1;
         }
         io.id = id;
-        io.regaddr = atoi(argv[3]);
+        io.regaddr = strtoul(argv[3],NULL,16);
         status = fpga_reg_read(fpga,io.regaddr,&(io.regdata));
         if(status != 0)
         {
             printf("read reg Error! %x \n",status);
+        }
+        else {
+            printf("read data: 0x%x\r\n",io.regdata);
         }
         fpga_close(fpga);
         return 0;
@@ -85,4 +90,3 @@ int main(int argc,char** argv){
         return -1;
     }
 }
-
